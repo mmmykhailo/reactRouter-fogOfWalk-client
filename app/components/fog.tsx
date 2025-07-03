@@ -1,7 +1,7 @@
 import { Pane, useMap } from "react-leaflet";
 import * as d3 from "d3";
 import L from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Track } from "~/types";
 import { discoveryRadiusMeters } from "~/lib/constants";
 
@@ -12,6 +12,9 @@ interface FogOfWarProps {
   visiblePointsMap: Map<number, Set<number>>;
   currentZoom: number;
   fogOpacity?: number;
+  tileUrl: string;
+  mapStyle?: string;
+  fogStyle?: string;
 }
 
 export const Fog = ({
@@ -19,8 +22,44 @@ export const Fog = ({
   visiblePointsMap,
   currentZoom,
   fogOpacity,
+  tileUrl,
+  mapStyle,
+  fogStyle = "inverted",
 }: FogOfWarProps) => {
   const map = useMap();
+  const invertedLayerRef = useRef<L.TileLayer | null>(null);
+
+  useEffect(() => {
+    console.log('Fog effect initialized with style:', fogStyle);
+    if (mapStyle === "satelite" || fogStyle !== "inverted") {
+      // If the map style is satelite, we don't need the inverted layer
+      return;
+    }
+
+    // Create a new pane for the inverted map layer
+    map.createPane("invertedPane");
+    const invertedPane = map.getPanes().invertedPane;
+
+    // Add the inverted tile layer to the map
+    invertedLayerRef.current = L.tileLayer(tileUrl, {
+      pane: "invertedPane",
+    }).addTo(map);
+
+    // Apply the inversion filter and a clip-path to the pane
+    d3.select(invertedPane)
+      .style("filter", "invert(100%)")
+      .style("mix-blend-mode", "overlay")
+      .style("clip-path", "url(#fog-clip-path)");
+
+    return () => {
+      if (invertedLayerRef.current) {
+        invertedLayerRef.current.remove();
+      }
+      if (map.getPane("invertedPane")) {
+        map.getPane("invertedPane")!.remove();
+      }
+    };
+  }, [map, tileUrl, mapStyle, fogStyle]);
 
   useEffect(() => {
     const svg = L.svg({ pane: "fogPane", padding: buffer }).addTo(map);
@@ -155,7 +194,7 @@ export const Fog = ({
       map.off("zoomend moveend", renderFog);
       svg.remove();
     };
-  }, [map, tracks, visiblePointsMap, currentZoom, fogOpacity]);
+  }, [map, tracks, visiblePointsMap, currentZoom, fogOpacity, fogStyle]);
 
   return <Pane name="fogPane" />;
 };

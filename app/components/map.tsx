@@ -19,16 +19,21 @@ export type MapProps = {
   selectedTrack: Track | null;
   fogOpacity?: number;
   style?: MapStyle;
+  fogStyle?: FogStyle;
   onTrackClick?: (targetTrack: Track) => void;
   onMapClick?: () => void;
 };
 
-export const mapStyles = ["satelite", "light", "default"] as const;
+export const mapStyles = ["satelite", "light", "color"] as const;
 
 export type MapStyle = (typeof mapStyles)[number];
 
+export const fogStyles = ["classic", "inverted"] as const;
+
+export type FogStyle = (typeof fogStyles)[number];
+
 const mapUrls: Record<MapStyle, string> = {
-  default:
+  color:
     "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
   satelite:
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -39,7 +44,8 @@ const Map = ({
   tracks,
   selectedTrack,
   fogOpacity,
-  style = "default",
+  style = "light",
+  fogStyle = "inverted",
   onTrackClick,
   onMapClick,
 }: MapProps) => {
@@ -174,6 +180,9 @@ const Map = ({
         tracks={dedupedTracks}
         visiblePointsMap={visiblePoints}
         currentZoom={currentZoom}
+        tileUrl={mapUrls[style]}
+        mapStyle={style}
+        fogStyle={fogStyle}
       />
 
       <div

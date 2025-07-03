@@ -10,13 +10,15 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "~/components/ui/menubar";
-import { mapStyles, type MapStyle } from "./map";
+import { fogStyles, mapStyles, type FogStyle, type MapStyle } from "./map";
 
 type MainMenubarProps = {
   fogOpacity: number;
   mapStyle: MapStyle;
+  fogStyle: FogStyle;
   setFogOpacity: (value: number) => void;
   setMapStyle: (value: MapStyle) => void;
+  setFogStyle: (value: FogStyle) => void;
   onSelectFilesClick: () => void;
   onClearTracksClick: () => void;
 };
@@ -24,8 +26,10 @@ type MainMenubarProps = {
 export function MainMenubar({
   fogOpacity,
   mapStyle,
+  fogStyle,
   setFogOpacity,
   setMapStyle,
+  setFogStyle,
   onClearTracksClick,
   onSelectFilesClick,
 }: MainMenubarProps) {
@@ -66,6 +70,21 @@ export function MainMenubar({
               >
                 {mapStyles.map((style) => (
                   <MenubarRadioItem key={style} value={style}>
+                    {style}
+                  </MenubarRadioItem>
+                ))}
+              </MenubarRadioGroup>
+            </MenubarSubContent>
+          </MenubarSub>
+           <MenubarSub>
+            <MenubarSubTrigger>Fog style</MenubarSubTrigger>
+            <MenubarSubContent>
+              <MenubarRadioGroup
+                value={fogStyle}
+                onValueChange={(value) => setFogStyle(value as FogStyle)}
+              >
+                {fogStyles.map((style) => (
+                  <MenubarRadioItem key={style} value={style} disabled={mapStyle === "satelite"}>
                     {style}
                   </MenubarRadioItem>
                 ))}
